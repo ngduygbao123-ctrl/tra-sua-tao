@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 dotenv.config();
 
@@ -17,9 +17,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || ''
-});
+// Khởi tạo Google Generative AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 const SYSTEM_INSTRUCTION = `
 Bạn là "Trợ lý ảo Trà sữa Táo" 🍎, hỗ trợ thân thiện, ngắn gọn, 100% bằng tiếng Việt.
@@ -37,29 +36,33 @@ Bạn là "Trợ lý ảo Trà sữa Táo" 🍎, hỗ trợ thân thiện, ngắ
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
-    const contents = [];
+
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      systemInstruction: SYSTEM_INSTRUCTION
+    });
+
+    const chatHistory = [];
     if (Array.isArray(history)) {
       for (const item of history) {
-        contents.push({
+        chatHistory.push({
           role: item.role === 'user' ? 'user' : 'model',
           parts: [{ text: item.text }]
         });
       }
     }
-    contents.push({ role: 'user', parts: [{ text: message }] });
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: contents,
-      config: { systemInstruction: SYSTEM_INSTRUCTION, temperature: 0.3 }
-    });
+    const chat = model.startChat({ history: chatHistory });
+    const result = await chat.sendMessage(message);
+    const reply = result.response.text();
 
-    res.json({ reply: response.text });
+    res.json({ reply });
   } catch (error) {
-    res.status(500).json({ error: 'Lỗi xử lý AI hoặc chưa có API Key.' });
+    console.error('Lỗi xử lý AI:', error);
+    res.status(500).json({ error: 'Lỗi xử lý AI hoặc API Key chưa chính xác.' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server chạy tại cổng ${PORT}`);
+  console.log(`Server đang chạy tại cổng ${PORT}`);
 });
