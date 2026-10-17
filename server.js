@@ -17,9 +17,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Khởi tạo Google Generative AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-
 const SYSTEM_INSTRUCTION = `
 Bạn là "Trợ lý ảo Trà sữa Táo" 🍎, hỗ trợ thân thiện, ngắn gọn, 100% bằng tiếng Việt.
 --- BẢNG GIÁ VÀ MENU CHÍNH THỨC:
@@ -35,31 +32,26 @@ Bạn là "Trợ lý ảo Trà sữa Táo" 🍎, hỗ trợ thân thiện, ngắ
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, history } = req.body;
-
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      systemInstruction: SYSTEM_INSTRUCTION
-    });
-
-    const chatHistory = [];
-    if (Array.isArray(history)) {
-      for (const item of history) {
-        chatHistory.push({
-          role: item.role === 'user' ? 'user' : 'model',
-          parts: [{ text: item.text }]
-        });
-      }
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'Chưa tìm thấy GEMINI_API_KEY trên Render. Vui lòng thêm vào mục Environment!' });
     }
 
-    const chat = model.startChat({ history: chatHistory });
-    const result = await chat.sendMessage(message);
+    const { message } = req.body;
+    const genAI = new GoogleGenerativeAI(apiKey);
+    
+    // Sử dụng model gemini-1.5-flash
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    
+    // Gộp hướng dẫn hệ thống cùng câu hỏi
+    const prompt = `${SYSTEM_INSTRUCTION}\n\nKhách hàng hỏi: "${message}"\nHãy trả lời khách hàng:`;
+    const result = await model.generateContent(prompt);
     const reply = result.response.text();
 
     res.json({ reply });
   } catch (error) {
-    console.error('Lỗi xử lý AI:', error);
-    res.status(500).json({ error: 'Lỗi xử lý AI hoặc API Key chưa chính xác.' });
+    console.error('Lỗi chi tiết:', error);
+    res.status(500).json({ error: 'Lỗi Google API: ' + (error.message || 'Kiểm tra lại API Key!') });
   }
 });
 
