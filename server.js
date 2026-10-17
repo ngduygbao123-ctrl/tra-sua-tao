@@ -16,144 +16,161 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// CƠ SỞ TRI THỨC TOÀN DIỆN VỀ QUÁN TRÀ SỮA TÁO
+// BỘ XỬ LÝ CHUYÊN SÂU: PHÍ SHIP & CÁC CÂU HỎI KHÓ TỪ KHÁCH HÀNG
 function getSmartAnswer(userMessage) {
   const q = (userMessage || '').toLowerCase().trim();
 
-  // 1. MENU CHÍNH & GIÁ BÁN
-  if (q.includes('menu') || q.includes('có gì') || q.includes('món gì') || q.includes('danh sách')) {
-    return "🍎 **MENU CHÍNH THỨC CỦA TRÀ SỮA TÁO:**\n\n" +
-           "🧋 **Dòng Trà Sữa:**\n" +
-           "• Trà sữa truyền thống: **25.000đ** (đậm vị trà, béo vị sữa)\n" +
-           "• Trà sữa trân châu đường đen: **32.000đ** (trân châu dai mềm, thơm caramel)\n" +
-           "• Trà sữa matcha: **35.000đ** (thơm đậm vị trà xanh Nhật Bản)\n\n" +
-           "🍑 **Dòng Trà Trái Cây Thanh Nhiệt:**\n" +
-           "• Trà đào: **29.000đ** (miếng đào giòn ngọt, giải nhiệt tức thì)\n" +
-           "• Trà vải: **29.000đ** (thơm ngát vị vải tươi sảng khoái)\n\n" +
-           "👉 Bạn có thể tùy chỉnh đường đá theo sở thích nhé!";
+  // ================= 1. CHUYÊN ĐỀ: TẤT CẢ VỀ PHÍ SHIP & GIAO HÀNG =================
+  
+  // Bảng giá ship theo km chi tiết
+  if (q.includes('phí ship') || q.includes('tiền ship') || q.includes('bao nhiêu km') || q.includes('tính ship') || q.includes('giá ship')) {
+    return "🛵 **BẢNG PHÍ SHIP CHÍNH THỨC CỦA TRÀ SỮA TÁO:**\n\n" +
+           "• **Dưới 1km (hoặc trong trường học):** Đồng giá **10.000đ** (Đơn từ 3 ly trở lên sẽ được **FREESHIP**).\n" +
+           "• **Từ 1km - 3km:** **15.000đ - 20.000đ**.\n" +
+           "• **Từ 3km - 5km:** **25.000đ**.\n" +
+           "• **Trên 5km:** Tính cước trực tiếp theo ứng dụng đối tác vận chuyển (Grab / ShopeeFood / Ahamove).\n\n" +
+           "👉 Bạn nhắn địa chỉ cụ thể để quán tính phí ship ưu đãi nhất cho bạn nhé!";
   }
 
-  // 2. MÓN BÁN CHẠY NHẤT (BEST SELLER)
-  if (q.includes('best') || q.includes('chạy nhất') || q.includes('ngon nhất') || q.includes('uống gì') || q.includes('gợi ý')) {
-    return "🌟 **2 Món 'Best Seller' được yêu thích nhất quán:**\n\n" +
-           "1. **Trà sữa trân châu đường đen (32.000đ):** Món 'cháy hàng' nhất với trân châu nấu mới mỗi 3 tiếng, dẻo dai bùi béo kết hợp sốt đường đen đậm vị.\n" +
-           "2. **Trà đào thanh mát (29.000đ):** Lựa chọn số 1 cho những ngày nắng nóng, vị chua ngọt hài hòa kèm thịt đào giòn ngọt.\n\n" +
-           "Hôm nay bạn muốn đổi gió với vị trà sữa hay trà trái cây nào?";
+  // Freeship / Miễn phí ship
+  if (q.includes('freeship') || q.includes('miễn phí ship') || q.includes('free ship') || q.includes('bao nhiêu ly được freeship')) {
+    return "🎉 **CHÍNH SÁCH FREESHIP CỦA QUÁN:**\n\n" +
+           "1. **Bán kính dưới 1km (khu vực KTX, trường học):** Freeship ngay cho đơn từ **3 ly** trở lên.\n" +
+           "2. **Bán kính dưới 3km:** Freeship cho hóa đơn từ **100.000đ**.\n" +
+           "3. **Đơn họp lớp, câu lạc bộ từ 10 ly:** Luôn luôn được hỗ trợ Freeship tận nơi!\n" +
+           "Rủ bạn bè cùng phòng đặt chung là được Freeship ngay đó bạn ơi!";
   }
 
-  // 3. TƯ VẤN THEO NGÂN SÁCH (DƯỚI 35K / DƯỚI 30K)
-  if (q.includes('35') || q.includes('30') || q.includes('tiền') || q.includes('ngân sách') || q.includes('rẻ')) {
-    return "💰 **Gợi ý món 'vừa túi tiền' sinh viên dưới 35.000đ:**\n\n" +
-           "• **25.000đ**: Trà sữa truyền thống (ngon chuẩn vị, giá siêu mềm)\n" +
-           "• **29.000đ**: Trà đào hoặc Trà vải (thanh mát ngày hè)\n" +
-           "• **32.000đ**: Trà sữa trân châu đường đen (đã có sẵn trân châu mềm dẻo)\n\n" +
-           "Cả 4 món trên đều dưới 35k, bạn thích gu đậm trà béo sữa hay thanh mát?";
+  // Sợ đá tan / Đi xa bị nhạt trà
+  if (q.includes('đá tan') || q.includes('tan đá') || q.includes('nhạt') || q.includes('đóng đá riêng') || q.includes('để đá riêng')) {
+    return "❄️ **Yên tâm về chất lượng khi Ship đi xa:**\n\n" +
+           "• Với các đơn giao trên 15 phút hoặc khi khách yêu cầu, quán sẽ **TỰ ĐỘNG ĐÓNG ĐÁ RIÊNG** trong túi zip sạch sẽ và bảo quản trong túi giữ nhiệt.\n" +
+           "• Khi shipper giao tới nơi, ly trà của bạn vẫn đậm đặc nguyên vị như uống trực tiếp tại quán!";
   }
 
-  // 4. KHẨU VỊ: ĐƯỜNG, ĐÁ, ĐỘ NGỌT
-  if (q.includes('đường') || q.includes('đá') || q.includes('ngọt') || q.includes('khẩu vị') || q.includes('ít ngọt')) {
-    return "🥤 **Bảng tùy chỉnh khẩu vị tại Trà Sữa Táo:**\n\n" +
-           "• **Mức đường:** 0% (không đường) | 30% (ít ngọt) | 50% (ngọt vừa) | 70% | 100% (chuẩn quán)\n" +
-           "• **Mức đá:** Không đá | 50% đá (ít đá) | 100% đá (chuẩn lạnh)\n\n" +
-           "💡 **Công thức chuẩn ngon của quán:** Bạn nên chọn **50% đường + 70% đá** để giữ trọn vị thơm béo mà không bị gắt cổ nhé!";
+  // Thời gian giao hàng & Mưa gió
+  if (q.includes('bao lâu') || q.includes('mấy phút') || q.includes('trời mưa') || q.includes('mưa có ship')) {
+    return "⏱️ **Thời gian giao hàng:**\n\n" +
+           "• **Đơn thông thường:** Từ 15 - 30 phút tùy khoảng cách.\n" +
+           "• **Khi trời mưa hoặc giờ cao điểm:** Có thể chậm hơn 10 - 15 phút do shipper phải di chuyển an toàn. Rất mong bạn thông cảm giúp các bác tài nha!";
   }
 
-  // 5. TOPPING
-  if (q.includes('topping') || q.includes('trân châu') || q.includes('thạch')) {
-    return "🧋 **Về Topping tại quán:**\n\n" +
-           "• Món **Trà sữa trân châu đường đen (32k)** đã có sẵn trân châu đường đen dẻo dai nấu mới trong ngày.\n" +
-           "• Đối với các món khác (Truyền thống, Matcha, Trà đào, Trà vải), bạn có thể dặn nhân viên khi gọi món tại quầy để được phục vụ theo ý thích nhé!";
+  // Khách bận không nhận hàng được / Hẹn giờ giao
+  if (q.includes('hẹn giờ') || q.includes('chưa nhận được') || q.includes('bận chưa lấy')) {
+    return "⏰ Quán có nhận **HẸN GIỜ GIAO TẬN TAY** nhé! Bạn chỉ cần báo trước giờ ra chơi hoặc giờ tan ca ít nhất 30 phút, quán sẽ canh chuẩn giờ để shipper mang trà sữa tới cho bạn!";
   }
 
-  // 6. GIỜ MỞ CỬA & ĐỊA CHỈ QUÁN
-  if (q.includes('giờ') || q.includes('mở cửa') || q.includes('địa chỉ') || q.includes('ở đâu') || q.includes('đến quán')) {
-    return "📍 **Thông tin quán Trà Sữa Táo:**\n\n" +
-           "• **Giờ hoạt động:** 08:00 - 22:30 (Mở cửa tất cả các ngày trong tuần, kể cả ngày lễ)\n" +
-           "• **Địa chỉ mô phỏng:** Kios Trà Sữa Táo - Khu phố Sinh viên (Đối diện cổng trường Đại học)\n" +
-           "• Quán có máy lạnh, wifi tốc độ cao và ổ cắm điện cho các bạn học tập, làm việc nhóm!";
+  // ================= 2. BỘ CÂU HỎI KHÓ & TÌNH HUỐNG HÓC BÚA =================
+
+  // Nguồn gốc, hóa chất, sợ bẩn, an toàn thực phẩm
+  if (q.includes('bẩn') || q.includes('hóa chất') || q.includes('nguồn gốc') || q.includes('sạch không') || q.includes('trung quốc') || q.includes('an toàn')) {
+    return "🛡️ **Cam kết Vệ sinh An toàn Thực phẩm 100%:**\n\n" +
+           "• **Trà:** Sử dụng lá trà khô chọn lọc từ các nông trường trà Bảo Lộc (Lâm Đồng), ủ tươi mỗi sáng bằng nước sôi đạt chuẩn.\n" +
+           "• **Sữa:** Sử dụng sữa thanh trùng và bột kem thực vật đạt chuẩn kiểm định của Bộ Y Tế, tuyệt đối KHÔNG dùng hương liệu trôi nổi.\n" +
+           "• **Trân châu:** Tự nấu mới mỗi 3 - 4 tiếng bằng bột năng nguyên chất và đường đen tự nhiên. Bạn hoàn toàn có thể yên tâm thưởng thức nhé!";
   }
 
-  // 7. PHƯƠNG THỨC THANH TOÁN
-  if (q.includes('thanh toán') || q.includes('chuyển khoản') || q.includes('momo') || q.includes('tiền mặt') || q.includes('quẹt thẻ')) {
-    return "💳 **Phương thức thanh toán tiện lợi tại quán:**\n\n" +
-           "• Tiền mặt tại quầy\n" +
-           "• Quét mã QR chuyển khoản nhanh (VietQR / Tất cả ngân hàng)\n" +
-           "• Ví điện tử MoMo, ZaloPay\n\n" +
-           "*(Lưu ý: Là AI mô phỏng, mình không trực tiếp thu tiền hoặc trừ tài khoản của bạn)*.";
+  // Giảm cân, tiểu đường, sợ mập, ăn kiêng, calo
+  if (q.includes('giảm cân') || q.includes('béo') || q.includes('mập') || q.includes('tiểu đường') || q.includes('calo') || q.includes('ăn kiêng')) {
+    return "🥗 **Gợi ý chuẩn 'Healthy' cho người sợ béo/ăn kiêng:**\n\n" +
+           "• **Nên chọn:** **Trà đào** hoặc **Trà vải** với mức **0% đường (hoặc 30% đường)**. Dòng trà trái cây này chỉ có khoảng 60 - 80 kcal, cực kỳ thanh nhẹ và không gây tăng cân.\n" +
+           "• **Nên tránh:** Trà sữa trân châu đường đen (chứa khoảng 350 - 450 kcal do có bột sữa và đường caramel cô đặc).\n\n" +
+           "Bạn muốn mình lấy 1 ly Trà đào 0% đường giải nhiệt nhé?";
   }
 
-  // 8. CÁCH BẢO QUẢN TRÀ SỮA
-  if (q.includes('bảo quản') || q.includes('để được bao lâu') || q.includes('tủ lạnh') || q.includes('hôm sau')) {
-    return "❄️ **Cách bảo quản trà sữa ngon nhất:**\n\n" +
-           "• **Uống ngon nhất:** Trong vòng 2 - 4 tiếng sau khi pha chế.\n" +
-           "• **Bảo quản:** Nếu chưa uống ngay, bạn nên bảo quản trong ngăn mát tủ lạnh (dưới 8°C) và dùng trong tối đa 24 giờ.\n" +
-           "• **Mẹo:** Nên vớt trân châu ra trước khi để tủ lạnh vì để lạnh trân châu sẽ bị sượng và cứng lại nhé!";
+  // Dị ứng sữa / Không dung nạp Lactose
+  if (q.includes('dị ứng') || q.includes('lactose') || q.includes('đau bụng') || q.includes('uống sữa bị')) {
+    return "⚠️ **Tư vấn cho bạn có cơ địa nhạy cảm với sữa bò:**\n\n" +
+           "• Nếu bạn bị dị ứng đạm sữa hoặc không dung nạp Lactose, **hãy chọn Trà Đào (29k) hoặc Trà Vải (29k)**. Hai món này là 100% trà trái cây nguyên chất, KHÔNG chứa bất kỳ thành phần sữa nào!\n" +
+           "• Không nên gọi Trà sữa truyền thống, Trân châu đường đen hay Matcha vì đều có thành phần từ sữa bạn nhé!";
   }
 
-  // 9. CHÍNH SÁCH GIAO HÀNG
-  if (q.includes('giao hàng') || q.includes('ship') || q.includes('vận chuyển')) {
-    return "🛵 **Chính sách giao hàng của Trà Sữa Táo:**\n\n" +
-           "• Quán nhận ship qua các đối tác giao hàng nhanh.\n" +
-           "• **Phí giao hàng:** Được tính linh hoạt dựa theo khoảng cách (km) từ quán đến địa chỉ của bạn.\n" +
-           "Bạn vui lòng gửi địa chỉ cụ thể để nhân viên kiểm tra và báo phí ship chính xác nhé!";
+  // Khách chê đắt / So sánh giá với quán khác
+  if (q.includes('đắt') || q.includes('mắc') || q.includes('bên kia bán') || q.includes('15k') || q.includes('20k')) {
+    return "Dạ quán rất thấu hiểu băn khoăn về giá của bạn ạ! Mức giá 25k - 35k tại Trà Sữa Táo được tối ưu để đảm bảo:\n" +
+           "1. Cốt trà thật ủ mới mỗi ngày, không dùng phẩm màu độc hại.\n" +
+           "2. Trân châu dẻo mềm nấu mới liên tục.\n" +
+           "3. Không gian có máy lạnh, wifi mạnh để học bài thoải mái.\n\n" +
+           "Đặc biệt nếu bạn là học sinh/sinh viên thì quán **giảm ngay 10%** khi mang thẻ, giá chỉ còn hơn 20k/ly thôi đó ạ!";
   }
 
-  // 10. CHƯƠNG TRÌNH KHUYẾN MÃI
-  if (q.includes('khuyến mãi') || q.includes('ưu đãi') || q.includes('giảm giá') || q.includes('voucher') || q.includes('sinh viên')) {
-    return "🎁 **Ưu đãi độc quyền cho Sinh viên:**\n\n" +
-           "🎉 **GIẢM NGAY 10% TRÊN TỔNG HÓA ĐƠN** dành cho tất cả các bạn học sinh, sinh viên khi xuất trình thẻ HSSV trực tiếp tại quầy gọi món!\n" +
-           "Chương trình áp dụng mỗi ngày, nhớ mang thẻ sinh viên khi ghé quán nhé!";
+  // Mua số lượng lớn / Mặc cả / Giảm giá theo nhóm
+  if (q.includes('mua nhiều') || q.includes('số lượng lớn') || q.includes('10 ly') || q.includes('20 ly') || q.includes('bớt không') || q.includes('giảm thêm')) {
+    return "🤝 **Chính sách ưu đãi cho đơn số lượng lớn (Họp lớp, CLB, Sự kiện):**\n\n" +
+           "• Đơn từ **10 ly trở lên**: FREESHIP + Tặng kèm topping trân châu hoặc giảm thêm 5%.\n" +
+           "• Đơn từ **20 ly trở lên**: Chiết khấu trực tiếp 10% - 15% tổng hóa đơn.\n" +
+           "Bạn nhắn số lượng dự kiến và giờ cần giao để quán chuẩn bị chu đáo nhất nhé!";
   }
 
-  // 11. KHIẾU NẠI & ĐƠN HÀNG
-  if (q.includes('khiếu nại') || q.includes('nhầm') || q.includes('sai') || q.includes('hỏng') || q.includes('hoàn tiền')) {
-    return "📞 **Hỗ trợ khiếu nại & Chăm sóc khách hàng:**\n\n" +
-           "Rất xin lỗi vì trải nghiệm chưa hoàn hảo của bạn! Vì là Trợ lý AI mô phỏng, mình không thể tự ý bấm hoàn tiền hay sửa đơn. Bạn vui lòng chụp hình lại ly nước, giữ hóa đơn và gọi Hotline: **0900.123.456** để được nhân viên đổi mới ngay lập tức!";
+  // Dị vật trong ly / Nước bị chua, hỏng
+  if (q.includes('dị vật') || q.includes('ruồi') || q.includes('sâu') || q.includes('chua') || q.includes('hỏng') || q.includes('thiu')) {
+    return "🚨 **XỬ LÝ KHẨN CẤP VỀ CHẤT LƯỢNG:**\n\n" +
+           "Dạ quán chân thành xin lỗi bạn vì sự cố nghiêm trọng này! Vệ sinh an toàn là ưu tiên sống còn của quán. Bạn vui lòng giữ lại ly nước, chụp hình gửi ngay Hotline: **0900.123.456**.\n" +
+           "Quán cam kết: **ĐỔI LY MỚI NGAY LẬP TỨC TRONG 20 PHÚT** hoặc **HOÀN TIỀN 100%** kèm quà tặng xin lỗi bạn!";
   }
 
-  // 12. HỎI CÁC MÓN KHÔNG CÓ TRONG QUÁN (Trà xoài, cà phê, sinh tố...)
-  if (q.includes('xoài') || q.includes('cà phê') || q.includes('cafe') || q.includes('sinh tố') || q.includes('nước cam')) {
-    return "Dạ hiện tại Trà Sữa Táo chỉ tập trung vào 5 món trà cốt tinh túy: Trà sữa truyền thống, Trân châu đường đen, Matcha, Trà đào và Trà vải ạ! Bạn thử một ly Trà đào giòn ngọt xem sao nhé?";
+  // Xin nợ tiền / Cho uống chịu
+  if (q.includes('nợ') || q.includes('uống chịu') || q.includes('cho thiếu') || q.includes('mai trả')) {
+    return "Hihi quán rất quý bạn nhưng vì quy định kiểm toán cuối ca của thu ngân nên quán chưa hỗ trợ bán nợ được ạ! Bạn có thể chuyển khoản online qua MoMo hoặc VietQR chỉ mất 3 giây thôi nè!";
   }
 
-  // MẶC ĐỊNH
+  // Xin công thức pha chế
+  if (q.includes('công thức') || q.includes('bí quyết') || q.includes('cách nấu') || q.includes('pha thế nào')) {
+    return "Bí quyết ngon nhất của quán nằm ở việc chọn búp trà Bảo Lộc tươi và tình cảm của đội ngũ pha chế gửi gắm vào từng ly trà! Công thức chi tiết là bí mật của bác pha chế rồi, nhưng khi nào thèm bạn cứ ghé quán để tụi mình phục vụ tận tình nha!";
+  }
+
+  // ================= 3. CÁC CÂU HỎI TIÊU CHUẨN KHÁC =================
+
+  // Menu
+  if (q.includes('menu') || q.includes('món') || q.includes('giá') || q.includes('có gì')) {
+    return "🍎 **MENU TRÀ SỮA TÁO CHUẨN GIÁ HÔM NAY:**\n\n" +
+           "1. Trà sữa truyền thống: **25.000đ**\n" +
+           "2. Trà đào thanh nhiệt: **29.000đ**\n" +
+           "3. Trà vải sảng khoái: **29.000đ**\n" +
+           "4. Trà sữa trân châu đường đen: **32.000đ** (Best-Seller)\n" +
+           "5. Trà sữa matcha Nhật Bản: **35.000đ**\n\n" +
+           "Tùy chọn: Đường (0% - 100%), Đá (Không đá, 50%, 100%). Bạn muốn chọn món nào?";
+  }
+
+  // Dưới 35k
+  if (q.includes('35') || q.includes('rẻ') || q.includes('ngân sách')) {
+    return "💰 **Món dưới 35k ngon bổ rẻ:**\n" +
+           "• 25k: Trà sữa truyền thống\n" +
+           "• 29k: Trà đào hoặc Trà vải\n" +
+           "• 32k: Trà sữa trân châu đường đen\n" +
+           "Món nào cũng chuẩn ngon dưới 35k bạn nha!";
+  }
+
+  // Giờ mở cửa & Địa chỉ
+  if (q.includes('giờ') || q.includes('địa chỉ') || q.includes('ở đâu')) {
+    return "📍 **Địa chỉ:** Kios Trà Sữa Táo - Khuôn viên trường / Phố sinh viên.\n🕒 **Giờ mở cửa:** 08:00 - 22:30 hàng ngày (kể cả Thứ 7, CN và ngày lễ)!";
+  }
+
+  // Khuyến mãi
+  if (q.includes('khuyến mãi') || q.includes('ưu đãi') || q.includes('giảm giá')) {
+    return "🎁 **Ưu đãi hiện có:** Giảm ngay **10% trên tổng bill** cho tất cả HSSV khi xuất trình thẻ tại quầy!";
+  }
+
+  // Khiếu nại thông thường
+  if (q.includes('khiếu nại') || q.includes('nhầm') || q.includes('sai')) {
+    return "📞 Dạ rất tiếc vì sự cố nhầm món! Bạn giữ lại hóa đơn và gọi Hotline: **0900.123.456** để quán điều phối nhân viên đổi ngay ly đúng cho bạn nhé!";
+  }
+
+  // Mặc định
   return "Xin chào bạn! Mình là Trợ lý ảo của **Trà Sữa Táo 🍎**.\n\n" +
-         "Bạn có thể hỏi mình:\n" +
-         "• 📋 'Menu hôm nay có gì?'\n" +
-         "• 🌟 'Món nào bán chạy nhất?'\n" +
-         "• 💰 'Tư vấn món dưới 35k'\n" +
-         "• 🕒 'Giờ mở cửa và địa chỉ quán'\n" +
-         "• 🎁 'Khuyến mãi hiện có'\n\n" +
-         "Hôm nay bạn muốn thưởng thức món nào?";
+         "Mình có thể giải đáp tường tận mọi thắc mắc về:\n" +
+         "• 🛵 Bảng phí ship, freeship, thời gian giao hàng\n" +
+         "• 📋 Menu, món bán chạy, tư vấn theo túi tiền\n" +
+         "• 🥗 Đồ uống cho người ăn kiêng, dị ứng sữa, an toàn thực phẩm\n\n" +
+         "Bạn cần mình hỗ trợ điều gì nào?";
 }
 
 app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (apiKey) {
-    try {
-      const prompt = `Bạn là Trợ lý ảo Trà Sữa Táo thân thiện, thông minh. Menu gồm: Truyền thống 25k, Trà đào 29k, Trà vải 29k, Đường đen 32k, Matcha 35k. Khuyến mãi: Giảm 10% HSSV. Giờ mở cửa: 8h-22h30. Hotline: 0900.123.456. Khách hỏi: "${message}". Hãy trả lời lịch sự, đầy đủ:`;
-      const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      });
-      const data = await aiRes.json();
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (reply && !data.error) {
-        return res.json({ reply });
-      }
-    } catch (e) {
-      // Tự động bỏ qua lỗi âm thầm
-    }
-  }
-
-  // Luôn trả về dữ liệu nghiệp vụ chuẩn xác 100%
   const reply = getSmartAnswer(message);
   res.json({ reply });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server Trà Sữa Táo đang chạy tại cổng ${PORT}`);
+  console.log(`Server Trà Sữa Táo đang hoạt động tại cổng ${PORT}`);
 });
