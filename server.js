@@ -16,7 +16,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// BẢNG GIÁ 5 MÓN CHÍNH THỨC
+// THÔNG TIN CHÍNH THỨC CỦA QUÁN
+const STORE = {
+  name: "Trà Sữa Táo 🍎",
+  address: "224 Quốc Lộ 13, Phường 26, Quận Bình Thạnh, TP.HCM",
+  hotline: "0900.123.456",
+  bankName: "MB Bank (Ngân hàng Quân Đội)",
+  stk: "2240139999",
+  accountName: "TRA SUA TAO BINH THANH",
+  momo: "0900123456"
+};
+
+// BẢNG GIÁ 5 MÓN
 const MENU = {
   'truyền thống': { name: 'Trà sữa truyền thống', price: 25000 },
   'đường đen': { name: 'Trà sữa trân châu đường đen', price: 32000 },
@@ -25,68 +36,52 @@ const MENU = {
   'vải': { name: 'Trà vải', price: 29000 }
 };
 
-// ====================================================================
-// 1. BỘ XỬ LÝ TỪ CHỐI KHÉO LÉO & BẢO VỆ NGUYÊN TẮC (POLITE REFUSALS)
-// ====================================================================
-function checkPoliteRefusals(query) {
-  const q = query.toLowerCase();
+// ĐOẠN MÃ HIỂN THỊ HÌNH ẢNH MÃ QR ĐẸP MẮT
+const QR_HTML = `
+<div style="text-align: center; margin: 12px 0;">
+  <img src="/qr.png" alt="Mã QR Thanh Toán" style="width: 200px; height: 200px; border-radius: 12px; border: 2.5px solid #D32F2F; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: inline-block;" />
+  <p style="font-size: 0.8rem; color: #D32F2F; font-weight: bold; margin-top: 6px;">📲 Quét mã QR để chuyển khoản nhanh 24/7</p>
+</div>
+`;
 
-  // (1) Từ chối ngôn từ thô tục / xúc phạm
-  if (q.includes('chửi') || q.includes('đụ') || q.includes('đm') || q.includes('vcl') || q.includes('mẹ mày') || q.includes('ngu')) {
-    return "Dạ Trà Sữa Táo luôn tôn trọng và lắng nghe mọi góp ý của khách hàng. Tuy nhiên, mong bạn giữ ngôn từ lịch sự để tụi mình có thể hỗ trợ bạn tốt nhất nhé ạ!";
+// 1. TÍNH PHÍ SHIP TỪ 224 QL13, BÌNH THẠNH
+function calculateShippingFee(text) {
+  const q = text.toLowerCase();
+
+  if (q.includes('bến xe miền đông') || q.includes('bxmd') || q.includes('nguyễn xí') || 
+      q.includes('đinh bộ lĩnh') || q.includes('chu văn an') || q.includes('tầm vu') || q.includes('1km') || q.includes('gần quán')) {
+    return { fee: 10000, note: "Khoảng cách < 1km (Gần quán 224 QL13)" };
   }
 
-  // (2) Từ chối xin nợ / uống thiếu
-  if (q.includes('nợ') || q.includes('uống thiếu') || q.includes('cho thiếu') || q.includes('mai trả') || q.includes('uống chịu') || q.includes('quịt')) {
-    return "Dạ quán rất quý bạn nhưng vì quy định đối soát doanh thu cuối ngày của thu ngân, quán **không thể hỗ trợ bán nợ hay cho thiếu tiền** được ạ! Bạn có thể chuyển khoản online qua VietQR hoặc MoMo chỉ mất 3 giây thôi nè!";
+  if (q.includes('hutech') || q.includes('ngoại thương') || q.includes('ftu') || q.includes('gtvt') || 
+      q.includes('giao thông vận tải') || q.includes('ung văn khiêm') || q.includes('võ oanh') || 
+      q.includes('d2') || q.includes('d5') || q.includes('thanh đa') || q.includes('2km') || q.includes('3km')) {
+    return { fee: 15000, note: "Bán kính 1km - 3km (Khu vực ĐH Bình Thạnh)" };
   }
 
-  // (3) Từ chối ship ngoài giờ hoạt động (sau 22h30 đêm hoặc sáng sớm)
-  if (q.includes('1h đêm') || q.includes('2h đêm') || q.includes('3h sáng') || q.includes('12h đêm') || q.includes('nửa đêm') || q.includes('khuya')) {
-    return "Dạ quán **từ chối nhận đơn giao sau 22:30 đêm** ạ! Quán chỉ hoạt động từ **08:00 đến 22:30 mỗi ngày** để các bạn nhân viên nghỉ ngơi và chuẩn bị nguyên liệu tươi mới cho ngày hôm sau. Hẹn bạn vào sáng mai nha!";
+  if (q.includes('gò vấp') || q.includes('phú nhuận') || q.includes('thủ đức') || q.includes('quận 1') || q.includes('q1') || q.includes('5km')) {
+    return { fee: 20000, note: "Bán kính 3km - 5km (Lân cận Bình Thạnh)" };
   }
 
-  // (4) Từ chối tự động hoàn tiền / hủy đơn qua chat
-  if (q.includes('hoàn tiền ngay') || q.includes('trả lại tiền cho tôi') || q.includes('hủy đơn ngay') || q.includes('bấm hủy đơn')) {
-    return "Dạ vì là Trợ lý AI mô phỏng, mình **không có quyền can thiệp vào tài khoản ngân hàng hoặc tự ý bấm hoàn tiền/hủy đơn**. Bạn vui lòng giữ lại hóa đơn và gọi ngay Hotline: **0900.123.456** để nhân viên trực tiếp xác minh và hoàn tiền cho bạn nhé!";
-  }
-
-  // (5) Từ chối mặc cả giá vô lý
-  if (q.includes('10k') || q.includes('15k bán không') || q.includes('bớt nửa giá') || q.includes('giảm 50%') || q.includes('cho miễn phí')) {
-    return "Dạ mức giá 25k - 35k tại quán là mức giá niêm yết chuẩn nhất để đảm bảo cốt trà sạch và sữa tươi tiệt trùng. Quán **không thể giảm giá thêm theo thỏa thuận riêng** được ạ. Nếu là học sinh/sinh viên, bạn nhớ mang thẻ để được giảm 10% theo quy định nhé!";
-  }
-
-  // (6) Từ chối tiết lộ công thức pha chế bí mật
-  if (q.includes('công thức') || q.includes('bí quyết pha') || q.includes('dùng nguyên liệu gì') || q.includes('hãng nào')) {
-    return "Dạ công thức pha chế và tỷ lệ ủ trà là **bí mật độc quyền của thương hiệu Trà Sữa Táo** nên quán không thể chia sẻ được ạ! Nhưng khi nào thèm, bạn cứ nhắn là tụi mình giao ngay ly trà thơm ngon chuẩn vị đến tận tay bạn nhé!";
-  }
-
-  // (7) Từ chối xin thông tin cá nhân / trêu ghẹo nhân viên
-  if (q.includes('xin sđt') || q.includes('xin info') || q.includes('nhân viên nữ') || q.includes('làm quen') || q.includes('yêu bạn') || q.includes('có người yêu chưa')) {
-    return "Dạ mình chỉ là Trợ lý AI chăm sóc khách hàng của Trà Sữa Táo thôi nè! Tụi mình **từ chối cung cấp thông tin cá nhân hoặc số điện thoại riêng của nhân viên quán**. Bạn cần hỗ trợ thêm thông tin gì về đồ uống không ạ?";
-  }
-
-  // (8) Từ chối ship quá xa / đi tỉnh khác
-  if (q.includes('hà nội') || q.includes('đà nẵng') || q.includes('cần thơ') || q.includes('hải phòng') || q.includes('tỉnh khác') || q.includes('20km') || q.includes('30km')) {
-    return "Dạ quán **từ chối nhận ship đi tỉnh hoặc khoảng cách trên 10km** ạ! Vì trà sữa và trân châu tươi chỉ giữ được độ ngon nhất trong vòng 2 tiếng, đi quá xa sẽ làm đá tan và mất chất lượng đồ uống. Rất mong bạn thông cảm giúp quán nha!";
-  }
-
-  // (9) Từ chối các món ngoài danh mục menu 5 món
-  const outOfMenu = ['cà phê', 'cafe', 'sinh tố', 'nước cam', 'trà xoài', 'trà chanh', 'bánh tráng', 'bánh ngọt', 'hạt hướng dương', 'bia', 'thuốc lá'];
-  for (const item of outOfMenu) {
-    if (q.includes(item)) {
-      return `Dạ hiện tại Trà Sữa Táo **chưa phục vụ món "${item}"** ạ! Quán chỉ tập trung vào 5 món cốt trà tinh túy: Trà sữa truyền thống, Trân châu đường đen, Matcha, Trà đào và Trà vải. Bạn thử đổi sang một ly Trà đào giòn ngọt nhé?`;
-    }
-  }
-
-  return null; // Không có yêu cầu vi phạm, chuyển sang xử lý nghiệp vụ bình thường
+  return { fee: 15000, note: "Nội thành Bình Thạnh" };
 }
 
-// ====================================================================
-// 2. BỘ TÍNH TOÁN HÓA ĐƠN TỰ ĐỘNG
-// ====================================================================
-function calculateBill(text) {
-  const q = text.toLowerCase();
+// 2. XUẤT THÔNG TIN THANH TOÁN KÈM MÃ QR
+function getPaymentInfo() {
+  return `💳 **HƯỚNG DẪN THANH TOÁN - TRÀ SỮA TÁO:**\n\n` +
+         `Bạn có thể quét mã QR dưới đây hoặc chuyển khoản theo thông tin:\n` +
+         QR_HTML +
+         `• **Ngân hàng:** ${STORE.bankName}\n` +
+         `• **Số tài khoản:** **${STORE.stk}**\n` +
+         `• **Chủ tài khoản:** ${STORE.accountName}\n` +
+         `• **Ví MoMo:** **${STORE.momo}**\n` +
+         `• Hoặc thanh toán **Tiền mặt (COD)** khi nhận hàng.\n\n` +
+         `*(Sau khi quét mã, bạn gửi ảnh biên lai để quán làm trà sữa giao ngay nhé!)*`;
+}
+
+// 3. TÍNH TIỀN HÓA ĐƠN & TỰ ĐỘNG KÈM MÃ QR
+function calculateBill(userText) {
+  const q = userText.toLowerCase();
   let items = [];
   let subtotal = 0;
 
@@ -105,88 +100,94 @@ function calculateBill(text) {
   const hasStudentCard = q.includes('sinh viên') || q.includes('thẻ sv') || q.includes('hssv');
   const discount = hasStudentCard ? Math.round(subtotal * 0.1) : 0;
 
-  let shipFee = 15000;
+  const shipData = calculateShippingFee(q);
+  let shipFee = shipData.fee;
   const totalQty = items.reduce((acc, cur) => acc + cur.qty, 0);
 
-  if (q.includes('ktx') || q.includes('gần') || q.includes('1km') || totalQty >= 3 || subtotal >= 100000) {
+  let isFreeShip = false;
+  if (totalQty >= 3 || subtotal >= 100000 || (shipFee === 10000 && totalQty >= 2)) {
     shipFee = 0;
+    isFreeShip = true;
   }
 
   const finalTotal = subtotal - discount + shipFee;
 
-  let bill = `🧾 **HÓA ĐƠN TÍNH TIỀN TỰ ĐỘNG:**\n\n`;
+  let res = `🧾 **HÓA ĐƠN ĐẶT HÀNG TỰ ĐỘNG:**\n`;
+  res += `📍 *Xuất phát từ: 224 QL13, P.26, Q. Bình Thạnh*\n`;
+  res += `----------------------------------------\n`;
   items.forEach(it => {
-    bill += `• ${it.name} x ${it.qty}: **${it.total.toLocaleString('vi-VN')}đ**\n`;
+    res += `• ${it.name} x ${it.qty}: **${it.total.toLocaleString('vi-VN')}đ**\n`;
   });
-  bill += `------------------------------\n`;
-  bill += `• Tiền nước: **${subtotal.toLocaleString('vi-VN')}đ**\n`;
+  res += `----------------------------------------\n`;
+  res += `• Tiền nước: **${subtotal.toLocaleString('vi-VN')}đ**\n`;
   if (hasStudentCard) {
-    bill += `• Ưu đãi Sinh viên (-10%): **-${discount.toLocaleString('vi-VN')}đ**\n`;
+    res += `• Ưu đãi Sinh viên (-10%): **-${discount.toLocaleString('vi-VN')}đ**\n`;
   }
-  bill += `• Phí giao hàng: **${shipFee === 0 ? 'FREESHIP (0đ) 🎉' : shipFee.toLocaleString('vi-VN') + 'đ'}**\n`;
-  bill += `👉 **TỔNG CỘNG THANH TOÁN: ${finalTotal.toLocaleString('vi-VN')}đ**\n\n`;
-  bill += `Bạn nhắn địa chỉ và số điện thoại để quán chốt đơn giao ngay nhé!`;
+  res += `• Phí ship (${shipData.note}): **${isFreeShip ? 'FREESHIP (0đ) 🎉' : shipFee.toLocaleString('vi-VN') + 'đ'}**\n`;
+  res += `👉 **TỔNG CỘNG THANH TOÁN: ${finalTotal.toLocaleString('vi-VN')}đ**\n\n`;
 
-  return bill;
+  // GẮN MÃ QR TRỰC TIẾP VÀO HÓA ĐƠN
+  res += `📱 **QUÉT MÃ QR THANH TOÁN NHANH:**\n`;
+  res += QR_HTML;
+  res += `• Hoặc trả **Tiền mặt khi nhận hàng (COD)**.\n`;
+  res += `👉 Bạn nhắn cho quán **Địa chỉ nhận hàng cụ thể + SĐT** để quán giao liền nhé!`;
+
+  return res;
 }
 
-// ====================================================================
-// 3. ĐIỀU HƯỚNG TỔNG HỢP CỦA CHATBOT
-// ====================================================================
+// 4. BỘ ĐIỀU HƯỚNG TỔNG HỢP CỦA CHATBOT
 function smartAssistant(userMessage) {
   const q = (userMessage || '').toLowerCase().trim();
 
-  // BƯỚC 1: Kiểm tra xem có rơi vào các tình huống cần từ chối không
-  const refusalResponse = checkPoliteRefusals(q);
-  if (refusalResponse) return refusalResponse;
+  // A. HỎI THANH TOÁN TIỀN -> XUẤT NGAY MÃ QR
+  if (q.includes('thanh toán') || q.includes('chuyển khoản') || q.includes('stk') || q.includes('qr') || q.includes('momo') || q.includes('trả tiền')) {
+    return getPaymentInfo();
+  }
 
-  // BƯỚC 2: Kiểm tra tính toán hóa đơn
+  // B. TÍNH TIỀN HÓA ĐƠN
   if (q.includes('tính tiền') || q.includes('tổng cộng') || q.includes('hết bao nhiêu') || q.includes('đặt') || q.includes('cho mình')) {
     const bill = calculateBill(q);
     if (bill) return bill;
   }
 
-  // BƯỚC 3: Cảm xúc & Tâm trạng
-  if (q.includes('buồn') || q.includes('thất tình') || q.includes('chán') || q.includes('stress')) {
-    return "Ôm bạn một cái thật ấm áp nè! ❤️ Hãy thưởng cho mình một ly **Trà sữa trân châu đường đen (32.000đ)** nhé. Vị ngọt thơm caramel và trân châu dai mềm sẽ giúp xoa dịu cảm xúc rất tốt đấy!";
+  // C. PHÍ SHIP TỪ 224 QL13
+  if (q.includes('ship') || q.includes('giao hàng') || q.includes('phí') || q.includes('bình thạnh')) {
+    const shipCalc = calculateShippingFee(q);
+    return `🛵 **CHÍNH SÁCH VẬN CHUYỂN TỪ 224 QL13, BÌNH THẠNH:**\n\n` +
+           `• **Khu vực của bạn:** Cước khoảng **${shipCalc.fee.toLocaleString('vi-VN')}đ** (${shipCalc.note}).\n` +
+           `• **Freeship:** Đơn từ **3 ly trở lên** hoặc bán kính gần < 1km.\n` +
+           `• Đi xa quán luôn **đóng đá riêng trong túi zip** giữ lạnh!\n\n` +
+           `Bạn cho quán xin địa chỉ cụ thể để tính cước chính xác nhất nhé!`;
   }
 
-  if (q.includes('buồn ngủ') || q.includes('deadline') || q.includes('tỉnh táo')) {
-    return "📚 **Bí kíp chạy deadline:** Chọn ngay **Trà sữa Matcha (35.000đ)**! Tinh chất trà xanh nguyên chất giúp bạn tập trung tỉnh táo cả buổi tối mà không hề gây cồn cào!";
-  }
-
-  // BƯỚC 4: Nghiệp vụ phí ship
-  if (q.includes('ship') || q.includes('giao hàng') || q.includes('phí ship')) {
-    return "🛵 **Chính sách giao hàng của Trà Sữa Táo:**\n" +
-           "• Bán kính < 1km (hoặc KTX): 10.000đ (Đơn từ 3 ly được **FREESHIP**).\n" +
-           "• 1km - 3km: 15.000đ - 20.000đ.\n" +
-           "• Đi xa quán luôn **đóng đá riêng trong túi zip** để không bị nhạt vị trà bạn nhé!";
-  }
-
-  // BƯỚC 5: Menu
-  if (q.includes('menu') || q.includes('món') || q.includes('giá')) {
-    return "🍎 **MENU CHUẨN GIÁ HÔM NAY:**\n\n" +
+  // D. MENU
+  if (q.includes('menu') || q.includes('món') || q.includes('giá') || q.includes('có gì')) {
+    return "🍎 **MENU TRÀ SỮA TÁO (224 QL13, BÌNH THẠNH):**\n\n" +
            "1. Trà sữa truyền thống: **25.000đ**\n" +
-           "2. Trà đào: **29.000đ**\n" +
-           "3. Trà vải: **29.000đ**\n" +
+           "2. Trà đào thanh mát: **29.000đ**\n" +
+           "3. Trà vải thơm ngọt: **29.000đ**\n" +
            "4. Trà sữa trân châu đường đen: **32.000đ**\n" +
-           "5. Trà sữa matcha: **35.000đ**\n\n" +
+           "5. Trà sữa matcha Nhật Bản: **35.000đ**\n\n" +
            "🎁 Giảm 10% khi xuất trình thẻ HSSV tại quầy!";
   }
 
-  // BƯỚC 6: Khuyến mãi
+  // E. KHUYẾN MÃI
   if (q.includes('khuyến mãi') || q.includes('ưu đãi') || q.includes('giảm giá')) {
     return "🎁 Quán đang có chương trình: **Giảm ngay 10% trên tổng hóa đơn** dành riêng cho Học sinh - Sinh viên khi xuất trình thẻ tại quầy!";
   }
 
-  // BƯỚC 7: Giờ mở cửa & Địa chỉ
-  if (q.includes('giờ') || q.includes('địa chỉ') || q.includes('ở đâu')) {
-    return "📍 **Địa chỉ:** Kios Trà Sữa Táo - Khu phố Sinh viên (Đối diện cổng trường).\n🕒 **Giờ mở cửa:** 08:00 - 22:30 hàng ngày!";
+  // F. ĐỊA CHỈ & GIỜ MỞ CỬA
+  if (q.includes('địa chỉ') || q.includes('ở đâu') || q.includes('giờ') || q.includes('mở cửa')) {
+    return `📍 **Địa chỉ quán:** ${STORE.address} (Gần Bến xe Miền Đông cũ).\n🕒 **Giờ mở cửa:** 08:00 - 22:30 mỗi ngày!`;
   }
 
-  // BƯỚC 8: Mặc định
-  return "Xin chào bạn! Mình là Trợ lý AI của **Trà Sữa Táo 🍎**.\n\n" +
-         "Mình sẵn sàng hỗ trợ bạn tư vấn menu, tính tiền tự động, phí ship hoặc giải đáp chính sách của quán. Bạn cần mình giúp gì hôm nay?";
+  // MẶC ĐỊNH
+  return `Xin chào bạn! Mình là Trợ lý AI của **Trà Sữa Táo 🍎** (224 QL13, P.26, Bình Thạnh).\n\n` +
+         `Bạn có thể gõ:\n` +
+         `• 💳 *"Cho mình quét mã QR chuyển khoản"*\n` +
+         `• 🧾 *"Tính tiền 2 ly trà đào ship qua HUTECH"*\n` +
+         `• 🛵 *"Phí ship đến Bến xe Miền Đông là bao nhiêu?"*\n\n` +
+         `Bạn cần quán hỗ trợ gì nào?`;
 }
 
 app.post('/api/chat', async (req, res) => {
