@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trà sữa Táo - AI Assistant</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <header class="chat-header">
+      <div class="brand">
+        <div class="brand-avatar">🍎</div>
+        <div class="brand-info">
+          <h1>Trà Sữa Táo</h1>
+          <p class="status">● Trợ lý AI đang sẵn sàng</p>
+        </div>
+      </div>
+      <div class="badge-tag">Demo Sinh Viên</div>
+    </header>
+
+    <div class="simulation-banner">
+      ⚠️ Mô phỏng học tập: Tư vấn menu, giá bán và chính sách quán Trà Sữa Táo.
+    </div>
+
+    <div class="quick-prompts">
+      <button class="chip" onclick="sendQuick('Menu hôm nay có gì?')">📋 Menu hôm nay</button>
+      <button class="chip" onclick="sendQuick('Tư vấn món dưới 35.000đ')">💰 Món dưới 35k</button>
+      <button class="chip" onclick="sendQuick('Chính sách giao hàng?')">🛵 Giao hàng</button>
+      <button class="chip" onclick="sendQuick('Khuyến mãi hiện có?')">🎁 Khuyến mãi</button>
+    </div>
+
+    <main class="chat-messages" id="chatMessages">
+      <div class="message bot-message">
+        <div class="msg-bubble">Xin chào! Mình là trợ lý ảo Trà Sữa Táo 🍎. Bạn cần tư vấn món gì hôm nay?</div>
+      </div>
+    </main>
+
+    <footer class="chat-footer">
+      <form id="chatForm">
+        <input type="text" id="userInput" placeholder="Nhập câu hỏi tại đây..." required autocomplete="off" />
+        <button type="submit">Gửi</button>
+      </form>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
