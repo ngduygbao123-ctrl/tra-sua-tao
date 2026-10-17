@@ -34,24 +34,44 @@ app.post('/api/chat', async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'Chưa tìm thấy GEMINI_API_KEY trên Render. Vui lòng thêm vào mục Environment!' });
+      return res.status(500).json({ error: 'Chưa tìm thấy GEMINI_API_KEY trên Render.' });
     }
 
     const { message } = req.body;
     const genAI = new GoogleGenerativeAI(apiKey);
-    
-    // Sử dụng model gemini-1.5-flash
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    
-    // Gộp hướng dẫn hệ thống cùng câu hỏi
-    const prompt = `${SYSTEM_INSTRUCTION}\n\nKhách hàng hỏi: "${message}"\nHãy trả lời khách hàng:`;
-    const result = await model.generateContent(prompt);
-    const reply = result.response.text();
+    const prompt = `${SYSTEM_INSTRUCTION}\n\nKhách hỏi: "${message}"\nTrả lời:`;
 
-    res.json({ reply });
+    // Danh sách các model tương thích từ Google
+    const candidateModels = [
+      'gemini-1.5-flash-latest',
+      'gemini-pro',
+      'gemini-1.0-pro',
+      'gemini-1.5-pro-latest'
+    ];
+
+    let reply = null;
+    let lastError = null;
+
+    // Thử từng model, cái nào chạy được thì lấy luôn
+    for (const modelName of candidateModels) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        reply = result.response.text();
+        if (reply) break;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    if (reply) {
+      res.json({ reply });
+    } else {
+      throw lastError;
+    }
   } catch (error) {
     console.error('Lỗi chi tiết:', error);
-    res.status(500).json({ error: 'Lỗi Google API: ' + (error.message || 'Kiểm tra lại API Key!') });
+    res.status(500).json({ error: 'Lỗi Google API: ' + (error.message || 'Không thể tạo câu trả lời.') });
   }
 });
 
