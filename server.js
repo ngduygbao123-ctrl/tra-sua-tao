@@ -36,11 +36,14 @@ const MENU = {
   'vải': { name: 'Trà vải', price: 29000 }
 };
 
-// ĐOẠN MÃ HIỂN THỊ HÌNH ẢNH MÃ QR ĐẸP MẮT
+// MÃ QR TỰ PHỤC HỒI THÔNG MINH (CHỐNG LỖI DẤU ? HOÀN TOÀN)
 const QR_HTML = `
 <div style="text-align: center; margin: 12px 0;">
-  <img src="/qr.png" alt="Mã QR Thanh Toán" style="width: 200px; height: 200px; border-radius: 12px; border: 2.5px solid #D32F2F; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: inline-block;" />
-  <p style="font-size: 0.8rem; color: #D32F2F; font-weight: bold; margin-top: 6px;">📲 Quét mã QR để chuyển khoản nhanh 24/7</p>
+  <img src="/qr.png" 
+       onerror="this.onerror=null; this.src='https://img.vietqr.io/image/MB-2240139999-compact2.png?amount=0&addInfo=TRA%20SUA%20TAO%20224%20QL13';" 
+       alt="Mã QR Thanh Toán" 
+       style="width: 220px; max-width: 90%; border-radius: 12px; border: 2.5px solid #D32F2F; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: inline-block; background: #ffffff; padding: 4px;" />
+  <p style="font-size: 0.8rem; color: #D32F2F; font-weight: bold; margin-top: 6px;">📲 Quét mã VietQR để thanh toán chuyển khoản 24/7</p>
 </div>
 `;
 
@@ -66,7 +69,7 @@ function calculateShippingFee(text) {
   return { fee: 15000, note: "Nội thành Bình Thạnh" };
 }
 
-// 2. XUẤT THÔNG TIN THANH TOÁN KÈM MÃ QR
+// 2. XUẤT THÔNG TIN THANH TOÁN
 function getPaymentInfo() {
   return `💳 **HƯỚNG DẪN THANH TOÁN - TRÀ SỮA TÁO:**\n\n` +
          `Bạn có thể quét mã QR dưới đây hoặc chuyển khoản theo thông tin:\n` +
@@ -76,10 +79,10 @@ function getPaymentInfo() {
          `• **Chủ tài khoản:** ${STORE.accountName}\n` +
          `• **Ví MoMo:** **${STORE.momo}**\n` +
          `• Hoặc thanh toán **Tiền mặt (COD)** khi nhận hàng.\n\n` +
-         `*(Sau khi quét mã, bạn gửi ảnh biên lai để quán làm trà sữa giao ngay nhé!)*`;
+         `*(Chuyển khoản xong bạn chỉ cần gửi ảnh biên lai cho quán để shipper lên đường ngay nhé!)*`;
 }
 
-// 3. TÍNH TIỀN HÓA ĐƠN & TỰ ĐỘNG KÈM MÃ QR
+// 3. TÍNH TIỀN HÓA ĐƠN & GẮN MÃ QR
 function calculateBill(userText) {
   const q = userText.toLowerCase();
   let items = [];
@@ -126,8 +129,8 @@ function calculateBill(userText) {
   res += `• Phí ship (${shipData.note}): **${isFreeShip ? 'FREESHIP (0đ) 🎉' : shipFee.toLocaleString('vi-VN') + 'đ'}**\n`;
   res += `👉 **TỔNG CỘNG THANH TOÁN: ${finalTotal.toLocaleString('vi-VN')}đ**\n\n`;
 
-  // GẮN MÃ QR TRỰC TIẾP VÀO HÓA ĐƠN
-  res += `📱 **QUÉT MÃ QR THANH TOÁN NHANH:**\n`;
+  // GẮN MÃ QR VÀO HÓA ĐƠN
+  res += `📱 **QUÉT MÃ QR ĐỂ THANH TOÁN:**\n`;
   res += QR_HTML;
   res += `• Hoặc trả **Tiền mặt khi nhận hàng (COD)**.\n`;
   res += `👉 Bạn nhắn cho quán **Địa chỉ nhận hàng cụ thể + SĐT** để quán giao liền nhé!`;
@@ -139,7 +142,7 @@ function calculateBill(userText) {
 function smartAssistant(userMessage) {
   const q = (userMessage || '').toLowerCase().trim();
 
-  // A. HỎI THANH TOÁN TIỀN -> XUẤT NGAY MÃ QR
+  // A. HỎI VỀ THANH TOÁN TIỀN -> HIỆN MÃ QR NGAY
   if (q.includes('thanh toán') || q.includes('chuyển khoản') || q.includes('stk') || q.includes('qr') || q.includes('momo') || q.includes('trả tiền')) {
     return getPaymentInfo();
   }
@@ -184,7 +187,7 @@ function smartAssistant(userMessage) {
   // MẶC ĐỊNH
   return `Xin chào bạn! Mình là Trợ lý AI của **Trà Sữa Táo 🍎** (224 QL13, P.26, Bình Thạnh).\n\n` +
          `Bạn có thể gõ:\n` +
-         `• 💳 *"Cho mình quét mã QR chuyển khoản"*\n` +
+         `• 💳 *"Cho mình quét mã QR thanh toán"*\n` +
          `• 🧾 *"Tính tiền 2 ly trà đào ship qua HUTECH"*\n` +
          `• 🛵 *"Phí ship đến Bến xe Miền Đông là bao nhiêu?"*\n\n` +
          `Bạn cần quán hỗ trợ gì nào?`;
