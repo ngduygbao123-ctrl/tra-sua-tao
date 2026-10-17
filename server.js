@@ -3,7 +3,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 dotenv.config();
 
@@ -34,44 +33,56 @@ app.post('/api/chat', async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'Chưa tìm thấy GEMINI_API_KEY trên Render.' });
+      return res.status(500).json({ error: 'Chưa có GEMINI_API_KEY trên Render.' });
     }
 
     const { message } = req.body;
-    const genAI = new GoogleGenerativeAI(apiKey);
+
+    // 1. Tự động hỏi Google danh sách model mà Key của bạn được phép dùng
+    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    const listData = await listRes.json();
+
+    if (listData.error) {
+      return res.status(500).json({ error: 'Lỗi API Key: ' + listData.error.message });
+    }
+
+    // 2. Tìm model phù hợp nhất đang mở cho bạn
+    const availableModels = listData.models || [];
+    const chosenModel = availableModels.find(m => 
+      m.supportedGenerationMethods && 
+      m.supportedGenerationMethods.includes('generateContent') &&
+      !m.name.includes('embedding')
+    );
+
+    if (!chosenModel) {
+      return res.status(500).json({ error: 'Không tìm thấy model phù hợp trong tài khoản Google này.' });
+    }
+
+    // 3. Gửi câu hỏi đến đúng model đó
     const prompt = `${SYSTEM_INSTRUCTION}\n\nKhách hỏi: "${message}"\nTrả lời:`;
+    const genRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${chosenModel.name}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
 
-    // Danh sách các model tương thích từ Google
-    const candidateModels = [
-      'gemini-1.5-flash-latest',
-      'gemini-pro',
-      'gemini-1.0-pro',
-      'gemini-1.5-pro-latest'
-    ];
+    const genData = await genRes.json();
 
-    let reply = null;
-    let lastError = null;
-
-    // Thử từng model, cái nào chạy được thì lấy luôn
-    for (const modelName of candidateModels) {
-      try {
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent(prompt);
-        reply = result.response.text();
-        if (reply) break;
-      } catch (err) {
-        lastError = err;
-      }
+    if (genData.error) {
+      return res.status(500).json({ error: genData.error.message });
     }
 
-    if (reply) {
-      res.json({ reply });
-    } else {
-      throw lastError;
+    const reply = genData.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!reply) {
+      return res.status(500).json({ error: 'Google không trả về nội dung trả lời.' });
     }
+
+    res.json({ reply });
   } catch (error) {
-    console.error('Lỗi chi tiết:', error);
-    res.status(500).json({ error: 'Lỗi Google API: ' + (error.message || 'Không thể tạo câu trả lời.') });
+    console.error('Lỗi server:', error);
+    res.status(500).json({ error: 'Lỗi máy chủ: ' + error.message });
   }
 });
 
